@@ -1,0 +1,12 @@
+lendrisk
+Copyright 2026 datakim and lendrisk contributors.
+
+This distribution contains code adapted from OptBinning 1.0.0:
+Copyright (C) 2019 Guillermo Navas-Palencia.
+OptBinning is distributed under the Apache License, Version 2.0.
+https://github.com/guillermo-navas-palencia/optbinning
+
+Adapted files: optbinning/binning/model_data.py and optbinning/binning/cp.py.
+The adapted implementation is in src/lendrisk/_binning_solver.py.
+Modifications are documented in docs/upstream.md and that module's header.
+The package is not affiliated with or endorsed by the OptBinning authors.

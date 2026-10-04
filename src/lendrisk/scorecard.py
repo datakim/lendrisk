@@ -1,28 +1,80 @@
-"""Optional adapter to OptBinning; its solver remains maintained upstream."""
+"""Native WoE/logistic scorecards with points-to-double-the-odds scaling."""
+
+import numpy as np
+import pandas as pd
+from sklearn.base import BaseEstimator, ClassifierMixin, clone
+from sklearn.linear_model import LogisticRegression
+from sklearn.utils.validation import check_is_fitted
+
+from ._validation import integer, number
+from .binning import BinningProcess
 
 
-def make_scorecard(variable_names: list[str], *, estimator: object = None, **kwargs: object):
-    """Construct an unfitted upstream scorecard; call fit on training data only.
+class LogisticScorecard(ClassifierMixin, BaseEstimator):
+    """Fit native bins and logistic regression within a training boundary.
 
-    Requires pip install 'lendrisk[scorecard]'. kwargs are passed to the upstream
-    Scorecard constructor. Bucketing, modeling, and serialization are handled
-    by OptBinning; lendrisk does not reproduce the optimal-binning algorithm.
+    Higher points mean lower default risk. base_odds denotes good:bad odds at
+    base_score; pdo points double those odds. Inputs are numerical DataFrames.
     """
-    if not variable_names or len(set(variable_names)) != len(variable_names):
-        raise ValueError("variable_names must be nonempty and unique")
-    if any(not isinstance(name, str) or not name for name in variable_names):
-        raise ValueError("variable_names must contain nonempty strings")
-    try:
-        from optbinning import BinningProcess, Scorecard
-        from sklearn.linear_model import LogisticRegression
-    except ImportError as exc:
-        raise ImportError(
-            "Install the optional dependencies: pip install 'lendrisk[scorecard]'"
-        ) from exc
-    if estimator is None:
-        estimator = LogisticRegression(max_iter=1_000)
-    return Scorecard(
-        binning_process=BinningProcess(variable_names=variable_names),
-        estimator=estimator,
-        **kwargs,
-    )
+
+    def __init__(
+        self, *, binning_process=None, pdo=20, base_score=600, base_odds=50, C=1.0, max_iter=1000
+    ):
+        self.binning_process = binning_process
+        self.pdo = pdo
+        self.base_score = base_score
+        self.base_odds = base_odds
+        self.C = C
+        self.max_iter = max_iter
+
+    def fit(self, X, y):
+        number(self.pdo, "pdo", strict=True)
+        number(self.base_score, "base_score", minimum=-np.inf)
+        number(self.base_odds, "base_odds", strict=True)
+        number(self.C, "C", strict=True)
+        integer(self.max_iter, "max_iter")
+        self.__dict__.pop("estimator_", None)
+        prototype = self.binning_process if self.binning_process is not None else BinningProcess()
+        if not isinstance(prototype, BinningProcess):
+            raise ValueError("binning_process must be a BinningProcess")
+        self.binning_process_ = clone(prototype).fit(X, y)
+        woe = self.binning_process_.transform(X)
+        self.estimator_ = LogisticRegression(C=self.C, max_iter=self.max_iter).fit(woe, y)
+        self.classes_ = self.estimator_.classes_
+        self.feature_names_in_ = self.binning_process_.feature_names_in_
+        self.n_features_in_ = len(self.feature_names_in_)
+        return self
+
+    def predict_proba(self, X):
+        check_is_fitted(self, "estimator_")
+        return self.estimator_.predict_proba(self.binning_process_.transform(X))
+
+    def predict(self, X):
+        check_is_fitted(self, "estimator_")
+        return self.estimator_.predict(self.binning_process_.transform(X))
+
+    def score_points(self, X):
+        """Return unrounded points from log odds, avoiding PD clipping."""
+        check_is_fitted(self, "estimator_")
+        log_bad_odds = self.estimator_.decision_function(self.binning_process_.transform(X))
+        return self.base_score + self.pdo / np.log(2) * (-log_bad_odds - np.log(self.base_odds))
+
+    @property
+    def intercept_points(self):
+        check_is_fitted(self, "estimator_")
+        factor = self.pdo / np.log(2)
+        return float(
+            self.base_score - factor * (self.estimator_.intercept_[0] + np.log(self.base_odds))
+        )
+
+    def table(self):
+        """Per-bin point contributions; add intercept_points once per application."""
+        check_is_fitted(self, "estimator_")
+        tables = []
+        factor = self.pdo / np.log(2)
+        for name, coefficient in zip(self.feature_names_in_, self.estimator_.coef_[0], strict=True):
+            table = self.binning_process_.binning_models_[name].table()
+            table.insert(0, "variable", name)
+            table["points"] = -factor * coefficient * table["woe"]
+            tables.append(table)
+        return pd.concat(tables, ignore_index=True)

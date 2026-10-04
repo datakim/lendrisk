@@ -1,13 +1,12 @@
 # lendrisk
 
-A local Python toolkit for cash-flow features, lending simulations, and
-credit-risk diagnostics. The initial alpha connects merchant revenue and costs
-to explicit revenue-linked payment contracts and stress scenarios.
+A local Python toolkit with native binary credit binning, logistic scorecards,
+and cash-flow lending analytics.
 
 - [API reference](api.md)
 - [Calculation conventions](conventions.md)
+- [Upstream provenance](upstream.md)
 - [Research notes](research.md)
-- [Project plan / 프로젝트 기획](project-plan.md)
+- [Project plan](project-plan.md)
 
-Source and installation instructions:
-[datakim/lendrisk](https://github.com/datakim/lendrisk).
+Source and installation: [datakim/lendrisk](https://github.com/datakim/lendrisk).

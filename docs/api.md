@@ -70,13 +70,45 @@ expected_share, actual_share, psi_contribution.
 `xnpv(rate, amounts, dates)` requires effective annual rate > -1.
 `xirr(amounts, dates)` requires conventional dated cash flows. Both use ACT/365.
 
-## Data and integration
+## Synthetic data
 
 `make_merchant_cashflows(days=365, start_date="2025-01-01", daily_revenue=1000,
 operating_cost_ratio=0.65, volatility=0.2, seed=42)` returns illustrative daily
-synthetic data. Volatility is the lognormal noise sigma, bounded at 5.
+synthetic data. Volatility is lognormal noise sigma, bounded at 5.
 
-`lendrisk.scorecard.make_scorecard(variable_names, *, estimator=None, **kwargs)`
-returns an unfitted upstream OptBinning Scorecard. Requires the scorecard extra.
-Default estimator: scikit-learn LogisticRegression(max_iter=1000). Additional
-keywords go to Scorecard. See [upstream API](https://gnpalencia.org/optbinning/scorecard.html).
+## Native binning
+
+`OptimalBinning(max_n_prebins=20, min_n_bins=1, max_n_bins=5,
+min_bin_size=0.05, max_bin_size=1.0, min_bin_n_event=1,
+min_bin_n_nonevent=1, monotonic_trend="auto", min_event_rate_diff=0,
+user_splits=None, special_codes=(), smoothing=0.5, time_limit=30)`
+accepts one numerical feature and a binary event target through `fit(x, y)`.
+
+Prebin count is bounded at 50. Integer class-count minima must be >=1. Bin size
+fractions refer to regular training observations. Explicit `user_splits` define
+candidate boundaries, not forced final cuts. Trends: None, ascending, descending,
+auto. Auto solves both monotonic directions, each with the configured time limit.
+
+Fitted attributes: `splits_`, `prebin_splits_`, `iv_` (unsmoothed regular objective),
+`status_`, `trend_`, `objective_gap_` (absolute quantized-IV gap),
+`solver_seconds_`, `binning_table_`.
+
+`transform(x, metric="woe")` supports woe, event_rate, indices. `table()` returns
+a copy with bin, count, count_share, nonevent, event, event_rate, woe, iv columns.
+`BinningOptimizationError` signals no feasible returned partition.
+
+`BinningProcess(binning=None)` supports `fit(X, y)`, `transform(X)`,
+`get_feature_names_out()`. X must be a DataFrame with unique string column names;
+transform must use the same column names and order. It clones the supplied
+OptimalBinning prototype per feature and returns a WoE DataFrame.
+
+## Native scorecards
+
+`LogisticScorecard(binning_process=None, pdo=20, base_score=600,
+base_odds=50, C=1.0, max_iter=1000)` fits native bins followed by logistic
+regression. Methods: `fit(X, y)`, `predict_proba(X)`, `predict(X)`,
+`score_points(X)`, `table()`. The `intercept_points` property is added once to
+the per-variable point contributions returned by table().
+
+Higher points imply lower default risk. Score = base_score + pdo/ln(2) ×
+[ln(good:bad odds) - ln(base_odds)]. Predictions require the same feature schema.

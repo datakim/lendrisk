@@ -7,5 +7,6 @@ nav:
   - Overview: index.md
   - API: api.md
   - Conventions: conventions.md
+  - Upstream provenance: upstream.md
   - Research: research.md
   - Project plan: project-plan.md

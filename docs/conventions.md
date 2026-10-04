@@ -94,3 +94,34 @@ Scenario paths have no assigned probability. Synthetic data is illustrative.
 Package validation verifies contracts and arithmetic, not model suitability
 for a lending population. Trained models, approval rules, and production
 servicing are separate from the analytical utilities delivered in this alpha.
+
+## Native binary binning and scorecards
+
+The native binning engine accepts numerical variables and binary event labels.
+Candidate boundaries come from reference-training quantiles or explicit
+user_splits. It maximizes regular-observation IV over contiguous prebins, subject
+to configured size/class-count constraints and optional monotonicity. Report
+Missing/Special buckets do not count toward the constrained regular-bin count.
+At least one event and nonevent are required in each selected regular bin.
+
+IV objective contributions are rounded at 1e8 scale for CP-SAT. OPTIMAL refers
+to that integer objective over the specified candidate search space. The
+absolute objective_gap_ refers to this quantized IV objective, not a population
+risk guarantee. Auto trend solves both directions independently; it reports
+FEASIBLE if an alternative direction has not been proven optimal/infeasible.
+If neither solve returns a feasible partition, fitting raises an explicit error.
+
+Reporting and transformation use additive smoothing, default 0.5, across
+occupied final regular/missing/special buckets. WoE = ln(non-event share/event
+share). Empty reserved buckets receive neutral WoE=0 and overall training event
+rate. Smoothed table IV differs from the unsmoothed regular optimization iv_.
+Intervals are left-closed/right-open, with unbounded exterior intervals. Missing
+values and special codes retain their own indices at transform time.
+
+BinningProcess fits independent native bins per numerical DataFrame column and
+returns a WoE DataFrame. LogisticScorecard fits those bins and logistic regression
+inside its fit call, so the caller must pass only training data. Higher score
+points represent lower risk. base_odds is good:bad odds at base_score, and pdo
+points doubles those odds. Per-bin point contributions plus intercept_points
+reconstruct the unrounded score. All fitted schemas require the same column
+names and order at prediction time.

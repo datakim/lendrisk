@@ -2,14 +2,14 @@
 
 Start with an issue describing the analyst question, expected inputs, calculation
 assumptions, and a small independently checkable example. Use synthetic or
-publicly licensed data. Keep optional integrations separate from core imports.
+publicly licensed data. Keep upstream comparison dependencies out of runtime imports.
 
 ## Development
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e ".[dev,docs,scorecard]"
+python -m pip install -e ".[dev,docs,reference]"
 python -m pytest --cov=lendrisk --cov-report=term-missing
 ruff check .
 ruff format --check .
@@ -18,8 +18,8 @@ python -m build
 python -m twine check dist/*
 ```
 
-Tests for optional integrations skip when the integration is absent. Core
-tests must pass with dev dependencies alone. Add regression tests for financial
+Upstream comparison tests skip when OptBinning is absent. Native binning and
+scorecards must pass with core/dev dependencies alone. Add regression tests for financial
 behavior, edge cases, input contracts, or bugs; prefer reference calculations
 and invariants to tests that simply repeat implementation steps.
 

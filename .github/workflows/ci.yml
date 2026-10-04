@@ -20,6 +20,7 @@ jobs:
       - run: python -m pytest --cov=lendrisk --cov-report=term-missing
       - run: python examples/cashflow_lending.py
       - run: python examples/credit_diagnostics.py
+      - run: python examples/native_scorecard.py
   package-and-docs:
     runs-on: ubuntu-latest
     steps:
@@ -37,13 +38,14 @@ jobs:
       - run: /tmp/lendrisk-wheel-test/bin/python -m pip install dist/*.whl
       - run: /tmp/lendrisk-wheel-test/bin/python examples/cashflow_lending.py
       - run: /tmp/lendrisk-wheel-test/bin/python examples/credit_diagnostics.py
-  scorecard:
+      - run: /tmp/lendrisk-wheel-test/bin/python examples/native_scorecard.py
+  upstream-reference:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      - run: python -m pip install -e ".[dev,scorecard]"
-      - run: python -m pytest tests/test_scorecard.py
-      - run: python examples/optbinning_scorecard.py
+      - run: python -m pip install -e ".[dev,reference]"
+      - run: python -m pytest tests/test_binning.py tests/test_scorecard.py
+      - run: python examples/native_scorecard.py

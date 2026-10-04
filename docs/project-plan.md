@@ -1,57 +1,61 @@
-# 프로젝트 기획: lendrisk
+# Project plan: lendrisk
 
-작성 기준일: 2026-10-04. 현재 구현 버전: 0.1.0a1.
+Planning date: 2026-10-04. Implementation version: 0.1.0a1.
 
-## 목적과 사용자
+## Purpose and users
 
-신용평가와 사업자금융에서 반복적으로 작성하는 분석 코드를 설치형 Python
-패키지로 제공한다. 주 사용자는 금융사·핀테크 데이터 분석가, 신용모형 개발자,
-사업자금융 연구자다. Jupyter, 배치 작업, 기존 모델링 파이프라인에서 사용할 수
-있도록 pandas와 NumPy 기반 입출력을 유지한다.
+Provide reusable, installable Python tools for credit scoring and cash-flow
+lending. Primary users are credit-model developers, fintech data scientists,
+business-finance analysts, and researchers using notebooks or batch pipelines.
 
-첫 번째 사용자 질문은 “주어진 매출 경로와 상품 조건에서 회수기간, 잔액,
-사업자의 현금 여력이 어떻게 달라지는가?”다. 신용모형 개발 기능은 기존
-OptBinning과 연결하고, 매출 데이터와 상환 구조 사이의 분석을 직접 제공한다.
+The package connects three questions: how to turn numerical variables into
+constrained credit-model features; how to fit and explain a scorecard; and how
+financing terms interact with a business's daily cash-flow path.
 
-## 설계 원칙
+## Architecture
 
-1. 설치 후 로컬에서 계산한다. 서비스 운영과 인증 없이 사용한다.
-2. 기능별 계산 가정, 기간, 단위를 명시한다.
-3. 관측 데이터, 미래 시나리오, 실제 결과를 호출자가 구분하게 한다.
-4. 누락 날짜, 부분 관측 기간, 미회수 잔액을 숨기지 않는다.
-5. 검증된 기존 알고리즘은 선택 의존성으로 연결한다.
-6. 유용한 기능을 작은 모듈로 추가하고, 공통 입력 규칙을 유지한다.
+1. Maintain a native binary binning engine based on selected adapted OptBinning
+   model-data code and a modified CP-SAT partition formulation.
+2. Build native multi-variable WoE transformations and logistic scorecards on
+   generic scikit-learn components, with explicit points scaling.
+3. Keep cash-flow features, financing contracts, scenarios, and credit
+   diagnostics in independent modules with pandas/NumPy outputs.
+4. Execute all package calculations locally without service authentication.
+5. Preserve upstream provenance and Apache 2.0 license requirements.
+6. Write documentation, comments, examples, and errors in English.
 
-## 0.1 알파에 구현한 기능
+## Implemented alpha scope
 
-| 모듈 | 입력과 출력 | 주요 검증 |
+| Module | Inputs and outputs | Verification |
 | --- | --- | --- |
-| cashflow | 일별 매출·비용 → 단일/다중 가맹점 피처 | 기준일 차단, 부분 기간, 날짜 누락 |
-| products | 상품 조건·매출 경로 → 회수 스케줄·요약 | 과회수 방지, 현금 보존, 최소 상환액 |
-| stress | 기본 경로·충격 가정 → 비교 표 | 입력 불변, 비용 탄력성, 고정 분석 기간 |
-| metrics | 실제 사건·예측치/분포 → 지표·PSI 표 | 동점 처리, 단일 클래스, 외부 구현 비교 |
-| returns | 날짜·금액 → XNPV/XIRR | 닫힌 해, 날짜 간격, 비정상 부호 패턴 |
-| scorecard | 피처 이름 → 미학습 OptBinning scorecard | 선택 의존성, 실제 fit/predict 연결 |
+| binning | Numerical feature + binary target → constrained intervals, WoE/IV table | Exhaustive small-problem oracle, upstream objective comparison, explicit infeasibility |
+| scorecard | Named feature table + binary labels → PD and score points | Training-boundary fit, Pipeline integration, PDO scaling, point reconstruction |
+| cashflow | Daily revenue/costs → point-in-time merchant features | Date cutoff, partial-window coverage, missing dates |
+| products | Contract + revenue path → repayment schedule and summary | Payment caps, cash conservation, floors and milestones |
+| stress | Baseline path + named shocks → comparison table | Input immutability, cost elasticity, fixed horizons |
+| metrics/returns | Labels/predictions/distributions or dated cash flows → analytical diagnostics | Independent numerical references, ties, date conventions |
 
-## 다음 버전의 우선순위
+## Follow-on roadmap
 
-각 항목은 계획이며 현재 구현된 기능으로 표시하지 않는다.
+These entries are planned and are not part of the current implementation.
 
-| 버전 후보 | 확장 | 시작 조건 |
+| Priority | Extension | Entry criteria |
 | --- | --- | --- |
-| 0.2 | 거래→일별 현금흐름 집계, 환불·정산 지연, 기존 부채 부담 | 실제 사용자의 입력 계약과 재현 가능한 사례 확보 |
-| 0.2 | 동일 차주에 대한 여러 상품 조건 비교 | 비용·기간·한도의 비교 규칙 정의 |
-| 0.3 | 빈티지/연체/회수 성과, 관측 기간이 다른 계약 처리 | 사건 날짜·연체 정의·만기 관측 규칙 확정 |
-| 0.3 | 시간 기반 모델 검증·모니터링 | 목표 사건과 성과 기간이 명확한 데이터 확보 |
-| 이후 | 한도·조건 최적화, 확률적 회수 분석 | 추정 모형·목적함수·검증 근거를 먼저 마련 |
+| Next | Categorical binning, CART prebins, sample weights | Independent test cases and clear handling of unseen categories |
+| Next | Advanced trend constraints and maximum bin event/nonevent counts | Solver-size benchmarks and optimality checks |
+| Next | Out-of-time scorecard validation and stability reports | Defined feature cutoff and performance-window contracts |
+| Later | Transaction aggregation, refunds, settlement delays, existing debt | Reproducible real-world data contracts |
+| Later | Vintage/delinquency/recovery analytics | Explicit event dates, censoring and default definitions |
+| Later | Product-term optimization and probabilistic recovery | Validated prediction models and documented objective functions |
 
-## 공개 배포 기준
+## Release criteria
 
-소스·예제·테스트·MIT 라이선스를 GitHub `datakim/lendrisk`에 공개한다.
-알파 태그를 고정해 GitHub에서 pip로 설치할 수 있게 한다. PyPI 배포는 별도
-계정·프로젝트 설정 후 수행한다. 첫 PyPI 배포 전 최소·최신 의존성 조합,
-지원 Python 버전, 깨끗한 환경의 wheel 설치를 확인한다.
+Publish source, tests, examples, research notes, and Apache 2.0 notices in
+`datakim/lendrisk`. Pin an alpha tag for direct GitHub installation with pip.
+Check supported Python versions in CI and verify a wheel in a clean environment
+without OptBinning installed. PyPI publication is a separate account/project
+configuration step.
 
-수치 검증과 사용 예제는 제공하지만 생산 환경에서 검증된 모형 성능이나
-공급자 계약 전체에 대한 호환성을 주장하지 않는다. 기여 제안에는 사용 사례,
-계산 가정, 기준 결과를 포함한다.
+The alpha makes no claim of full upstream feature parity or production credit
+model performance. Scenario analysis uses caller-supplied paths; it does not
+manufacture default labels, forecast probabilities, or automatic approvals.
