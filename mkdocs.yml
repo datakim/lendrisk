@@ -1,0 +1,11 @@
+site_name: lendrisk
+site_description: Cash-flow features, lending simulations, and credit-risk diagnostics
+repo_url: https://github.com/datakim/lendrisk
+theme:
+  name: material
+nav:
+  - Overview: index.md
+  - API: api.md
+  - Conventions: conventions.md
+  - Research: research.md
+  - Project plan: project-plan.md
