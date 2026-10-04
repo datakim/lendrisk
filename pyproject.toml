@@ -28,10 +28,11 @@ dependencies = ["numpy>=1.24", "pandas>=2.0", "ortools>=9.10", "scikit-learn>=1.
 
 [project.optional-dependencies]
 reference = ["optbinning>=0.20"]
-dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.9", "build>=1.2", "twine>=6", "numpy-financial>=1.0", "scikit-learn>=1.4"]
-docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.5,<10"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.9", "build>=1.2", "twine>=6", "numpy-financial>=1.0", "scikit-learn>=1.4", "nbclient>=0.10", "ipykernel>=6"]
+docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.5,<10", "matplotlib>=3.7"]
 
 [project.urls]
+Documentation = "https://datakim.github.io/lendrisk/"
 Repository = "https://github.com/datakim/lendrisk"
 Issues = "https://github.com/datakim/lendrisk/issues"
 
@@ -39,7 +40,7 @@ Issues = "https://github.com/datakim/lendrisk/issues"
 packages = ["src/lendrisk"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/", "tests/", "examples/", "docs/", ".github/", "README.md", "LICENSE", "NOTICE", "CONTRIBUTING.md", "CHANGELOG.md", "pyproject.toml", "mkdocs.yml"]
+include = ["src/", "tests/", "examples/", "docs/", "notebooks/", "scripts/", ".github/", "README.md", "LICENSE", "NOTICE", "CONTRIBUTING.md", "CHANGELOG.md", "pyproject.toml", "mkdocs.yml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

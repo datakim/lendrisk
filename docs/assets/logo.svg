@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">lendrisk</title>
+  <rect width="64" height="64" rx="12" fill="#112c31"/>
+  <path d="M12 45 H25 V32 H38 V19 H52" stroke="#86d7bb" stroke-width="5" fill="none"/>
+</svg>

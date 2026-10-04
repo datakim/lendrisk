@@ -1,0 +1,23 @@
+{
+  "Baseline": {
+    "repaid": true,
+    "payoff_days": 337,
+    "remaining_balance": 0.0,
+    "minimum_cash_balance": 35363.27947135184,
+    "negative_cash_days": 0
+  },
+  "Sales -20%": {
+    "repaid": false,
+    "payoff_days": null,
+    "remaining_balance": 4755.464157453705,
+    "minimum_cash_balance": 35151.41962003413,
+    "negative_cash_days": 0
+  },
+  "Sales -40%": {
+    "repaid": false,
+    "payoff_days": null,
+    "remaining_balance": 11966.598118090316,
+    "minimum_cash_balance": -4444.124551088031,
+    "negative_cash_days": 48
+  }
+}

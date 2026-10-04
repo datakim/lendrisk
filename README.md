@@ -1,177 +1,155 @@
-# lendrisk
+![lendrisk: Understand credit. Follow the cash.](docs/assets/banner.svg)
 
-**Native credit binning, scorecards, and cash-flow lending analytics for Python.**
+[![CI](https://github.com/datakim/lendrisk/actions/workflows/ci.yml/badge.svg)](https://github.com/datakim/lendrisk/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-18363c)](pyproject.toml)
+[![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-147d78)](LICENSE)
+[![Alpha](https://img.shields.io/badge/status-alpha-b57b18)](https://github.com/datakim/lendrisk/releases)
 
-[Project plan](docs/project-plan.md) · [API reference](docs/api.md) · [Calculation conventions](docs/conventions.md) · [Upstream provenance](docs/upstream.md)
+**Credit risk and cash-flow lending tools you can install and run in Python.**
+Build readable credit scores, extract merchant cash-flow features, and explore
+how revenue-linked financing behaves when sales change. Works locally with NumPy,
+pandas, scikit-learn, and a native OR-Tools binning solver.
 
-`lendrisk` is an installable Python library for credit-model developers and
-analysts working on business loans, merchant cash advances (MCA), and
-revenue-based financing (RBF). It includes its own constrained binary binning
-engine, WoE transformation, logistic scorecards, and revenue-linked repayment
-analysis. Package calls execute locally without sending data to a service.
+**[Start here](https://datakim.github.io/lendrisk/quickstart/)** ·
+[Documentation](https://datakim.github.io/lendrisk/) · [Notebooks](notebooks/) ·
+[API reference](docs/api.md) · [Releases](https://github.com/datakim/lendrisk/releases)
 
-The binary optimization core adapts selected OptBinning code and changes the
-solver formulation. See [NOTICE](NOTICE) and [provenance](docs/upstream.md).
-OptBinning is not a runtime dependency. NumPy, pandas, scikit-learn, and OR-Tools
-provide numerical operations, data structures, logistic regression, and CP-SAT.
+## See the question, then the answer
 
-Version **0.1.0a1** is an initial alpha with numerical features and binary
-classification targets. Categorical/continuous/multiclass binning, advanced
-trend shapes, sample weights, and regulatory approval policies are future work.
+*“If this merchant's sales fall, when do we get paid—and how much cash is left?”*
 
-## Install
+![Three synthetic simulations: baseline pays off on day 337; a 40% sales decline leaves 11,967 unpaid and cash falls below zero.](docs/assets/financing-scenarios.png)
+
+The same 30,000 advance behaves differently across three supplied revenue paths.
+The left chart tracks unpaid receivables; the right tracks merchant cash after
+operating costs and financing payments. The example uses synthetic data. Each
+shock changes revenue while retaining the original operating-cost path.
+
+## Try it in a minute
+
+Python **3.10+** and Git are required. Install the tagged alpha:
 
 ```bash
 python -m pip install "git+https://github.com/datakim/lendrisk.git@v0.1.0a1"
 ```
 
-Python 3.10+ is supported. PyPI publication has not been configured yet;
-`pip install lendrisk` will become available after that separate release step.
-
-For development:
-
-```bash
-git clone https://github.com/datakim/lendrisk.git
-cd lendrisk
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -e ".[dev,docs]"
-```
-
-## Native optimal binning
+Run this complete example in a Python file or notebook:
 
 ```python
-from lendrisk import OptimalBinning
+from lendrisk import RevenueAdvance, RevenueShock, compare_scenarios, make_merchant_cashflows
 
-x = [10, 10, 20, 20, 30, 30, 40, 40]
-y = [0, 0, 0, 1, 0, 1, 1, 1]  # Event/default = 1
-
-binning = OptimalBinning(
-    max_n_prebins=4,
-    max_n_bins=3,
-    monotonic_trend="ascending",
-).fit(x, y)
-
-print(binning.status_)
-print(binning.splits_)
-print(binning.table())
-woe = binning.transform([15, 25, 35])
-```
-
-The optimizer maximizes IV over contiguous prebins subject to bin-count,
-size, event/nonevent count, monotonicity, and event-rate-gap constraints.
-Quantile or supplied prebin boundaries define the search space. Missing and
-special codes have dedicated buckets. Infeasible or timed-out solves without
-a feasible partition raise an explicit error rather than returning a fallback.
-
-## Native scorecards
-
-```python
-import pandas as pd
-from sklearn.datasets import make_classification
-from sklearn.model_selection import train_test_split
-from lendrisk import LogisticScorecard, credit_metrics
-
-# Synthetic classification example, not a credit performance benchmark.
-X, y = make_classification(n_samples=600, n_features=4, n_redundant=0, random_state=42)
-X = pd.DataFrame(X, columns=["x0", "x1", "x2", "x3"])
-X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, random_state=42)
-
-model = LogisticScorecard(pdo=20, base_score=600, base_odds=50).fit(X_train, y_train)
-pd_hat = model.predict_proba(X_test)[:, 1]
-points = model.score_points(X_test)
-print(credit_metrics(y_test, pd_hat))
-print(model.table())
-```
-
-Higher points mean lower default risk. `base_odds` is the good:bad odds at
-`base_score`; adding `pdo` points doubles those odds. A `BinningProcess` can
-also be used inside a scikit-learn Pipeline. Fit bins and models exclusively
-on the training partition; supply point-in-time feature data.
-
-## Cash-flow lending and stress analysis
-
-```python
-from lendrisk import (
-    RevenueAdvance,
-    RevenueShock,
-    cashflow_features,
-    compare_scenarios,
-    make_merchant_cashflows,
-)
-
-# Future rows are a supplied synthetic scenario, not a fitted forecast.
 data = make_merchant_cashflows(days=540, seed=42)
-history, future = data.iloc[:180], data.iloc[180:]
-features = cashflow_features(history, as_of=history["date"].max())
-
+future = data.iloc[180:]  # A synthetic 360-day path after 180 historical days.
 advance = RevenueAdvance(principal=30_000, factor_rate=1.12, holdback_rate=0.10)
-result = advance.simulate(future, opening_cash=5_000)
-print(result.summary())
-
-comparison = compare_scenarios(
+report = compare_scenarios(
     advance,
     future,
     [RevenueShock("sales_down_20pct", 0.8), RevenueShock("sales_down_40pct", 0.6)],
     opening_cash=5_000,
 )
-print(comparison[["repaid", "payoff_days", "remaining_balance", "minimum_cash_balance"]])
+print(report[["repaid", "payoff_days", "remaining_balance", "minimum_cash_balance"]].round(0))
 ```
 
-Daily DataFrames require `date`, `revenue`, and optionally `operating_cost`.
-Use one row per calendar day, including explicit zero-sales days. With costs,
-post-funding cash starts at opening_cash + principal. Without costs, liquidity
-metrics remain unknown. Simulations assume scheduled payments execute; a
-negative cash balance indicates required liquidity under the supplied scenario.
-Unrecovered balances remain outstanding at the end of the supplied horizon.
+The output, rounded to whole currency units:
 
-`MinimumPayment(amount, every_days)` configures a block-end payment top-up;
-`RepaymentMilestone(day, cumulative_fraction)` checks progress without forcing
-a payment. Configure contract terms explicitly. A financing object's legal
-classification is not inferred. Floating-point analytical outputs do not apply
-currency rounding or provide a settlement ledger.
+| Revenue path | Repaid within 360 days? | Payoff day | Still unpaid | Lowest end-of-day cash |
+| --- | --- | --- | ---: | ---: |
+| Baseline | Yes | 337 | 0 | 35,363 |
+| Sales −20% | No | — | 4,755 | 35,151 |
+| Sales −40% | No | — | 11,967 | −4,444 |
 
-## Included modules
+**Read the result:** `repaid=False` means a balance remains at the end of this
+path. Negative cash indicates a liquidity shortfall under the scheduled-payment
+assumption. Neither automatically labels a merchant as defaulted. The 1.12
+factor sets a 33,600 receivable; the 10% holdback takes 10% of each day's revenue
+until it is paid. A factor rate is a repayment multiple, not an annual rate.
 
-| Module | Functions and classes |
-| --- | --- |
-| Binning | `OptimalBinning`, `BinningProcess`, WoE/IV tables, solver status and objective gap |
-| Scorecards | `LogisticScorecard`, probabilities, PDO-scaled points, per-bin point contributions |
-| Cash flow | Point-in-time features, growth, volatility, coverage, operating margins, merchant panels |
-| Products | `RevenueAdvance`, payment floors/milestones, monthly `TermLoan` schedules |
-| Stress | Named revenue shocks, date intervals, fixed/variable cost assumptions |
-| Diagnostics | AUC/Gini/KS, Brier/log loss, PSI tables, elementwise PD × LGD × EAD |
-| Returns | ACT/365 fixed XNPV/XIRR for conventional cash flows |
+→ [Walk through every step](docs/tutorials/revenue-financing.md) ·
+[Run the notebook](notebooks/01_revenue_financing.ipynb) ·
+[Use your own CSV](docs/your-data.md)
 
-## Verification
+## Choose your workflow
+
+| I want to… | Start with | What I get |
+| --- | --- | --- |
+| Group a credit variable into readable risk bands | `OptimalBinning` | Constrained bins, default rates, WoE, and solver status |
+| Build an explainable credit score | `LogisticScorecard` | Default probabilities, score points, per-bin contributions |
+| Understand recent merchant cash flow | `cashflow_features` | Revenue, growth, volatility, coverage, and operating margins at a cutoff date |
+| Explore MCA / revenue-based finance mechanics | `RevenueAdvance`, `RevenueShock` | Daily payments, payoff timing, remaining receivables, and liquidity |
+| Evaluate a model or portfolio | `credit_metrics`, `expected_loss`, `population_stability_index` | Discrimination, probability errors, expected loss, and distribution drift |
+| Analyze installments and dated returns | `TermLoan`, `xirr`, `xnpv` | Payment schedules and dated cash-flow calculations |
+
+## Make credit variables easier to read
+
+![Native optimal binning merges noisy candidate default rates into monotonic groups, with positive and negative weight of evidence.](docs/assets/native-binning.png)
+
+Native binning chooses contiguous numerical groups that separate defaults from
+non-defaults while respecting constraints such as minimum bin size and monotonic
+default rates. **Weight of evidence (WoE)** summarizes that separation for a
+scorecard. This chart uses 1,000 synthetic observations; it shows training data,
+not a validation result.
+
+```python
+import numpy as np
+from lendrisk import OptimalBinning
+
+rng = np.random.default_rng(42)
+debt_ratio = rng.uniform(0.05, 0.95, 1_000)
+default = rng.binomial(1, 0.02 + 0.42 * debt_ratio**2)
+bins = OptimalBinning(max_n_bins=5, monotonic_trend="ascending").fit(debt_ratio, default)
+print(bins.table()[["bin", "count", "event_rate", "woe"]])
+```
+
+→ [Binning and scorecards tutorial](docs/tutorials/scorecards.md) ·
+[Scorecard notebook](notebooks/02_native_scorecard.ipynb)
+
+## Scores you can explain
+
+![With PDO 20 and base odds 50:1, 580 points corresponds to 3.85% model PD, 600 to 1.96%, and 620 to 0.99%.](docs/assets/score-scale.png)
+
+`LogisticScorecard` fits native bins followed by logistic regression. Higher
+points mean lower modeled default risk. At the default scale, **20 extra points
+double the good:bad odds**. `model.table()` exposes each variable's bin and point
+contribution; `model.intercept_points` is added once. The chart illustrates the
+scale formula, not measured model accuracy or calibration.
+
+## What is ready today?
+
+This is an **alpha** with numerical features, binary credit targets, and
+explicit daily financing simulations. The binning core adapts selected
+OptBinning code under Apache 2.0 and runs without importing OptBinning.
+Categorical/multiclass binning, automated revenue forecasts, and regulatory
+reporting are outside the current scope. [See provenance and differences](docs/upstream.md).
+
+Model fitting belongs inside the training boundary. Supply the event definition,
+observation date, future path, and agreement terms for your use case; the toolkit
+does not infer them. [Calculation conventions](docs/conventions.md) document
+missing dates, smoothing, cash accounting, solver statuses, and return formulas.
+
+## Explore, contribute, reproduce
+
+Clone the repository to run all examples and regenerate these figures:
 
 ```bash
-python examples/native_scorecard.py
-python examples/cashflow_lending.py
-python examples/credit_diagnostics.py
-python -m pytest --cov=lendrisk --cov-report=term-missing
-ruff check .
-ruff format --check .
-mkdocs build --strict
-python -m build
-python -m twine check dist/*
+git clone https://github.com/datakim/lendrisk.git
+cd lendrisk
+python -m venv .venv
+source .venv/bin/activate  # Windows PowerShell: .venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev,docs]"
+python examples/quickstart.py
+python examples/visual_walkthrough.py
+mkdocs serve
 ```
 
-Tests independently enumerate small binning problems, compare shared-search-space
-IV with upstream OptBinning when installed, check monotonic constraints and score
-scaling, and validate repayment invariants and diagnostics against reference
-implementations. Optional upstream comparison: install `.[dev,reference]`.
+Figures are generated from package outputs by
+[visual_walkthrough.py](examples/visual_walkthrough.py). Their
+[scenario summaries](docs/assets/scenario-summary.json) and
+[binning table](docs/assets/binning-table.csv) are included for inspection.
+The notebooks contain executed synthetic examples and can also be opened in Colab.
 
-## References and license
+[Contributing](CONTRIBUTING.md) · [Roadmap](docs/project-plan.md) ·
+[Research](docs/research.md) · [Presentation references](docs/presentation.md) ·
+[Glossary](docs/glossary.md)
 
-Reviewed references: [OptBinning](https://github.com/guillermo-navas-palencia/optbinning),
-[scorecardpy](https://github.com/ShichenXie/scorecardpy),
-[skorecard](https://github.com/ing-bank/skorecard),
-[NumPy Financial](https://numpy.org/numpy-financial/latest/),
-[scikit-learn](https://scikit-learn.org/stable/modules/model_evaluation.html),
-[Stripe Capital](https://docs.stripe.com/capital/how-capital-for-platforms-works),
-and [Shopify Capital](https://help.shopify.com/en/manual/finance/shopify-capital/united-states).
-
-Apache License 2.0. Adapted upstream code retains author attribution in
-[NOTICE](NOTICE). Contributions should include a concrete analytical use case,
-explicit assumptions, and independently checkable numerical examples.
+Licensed under [Apache 2.0](LICENSE). Upstream attribution is preserved in
+[NOTICE](NOTICE) and [the provenance notes](docs/upstream.md).

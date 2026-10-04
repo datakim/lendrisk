@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360"
+  viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">lendrisk — Understand credit. Follow the cash.</title>
+  <desc id="desc">An installable Python toolkit for binning, scorecards and revenue financing.
+  Three actual synthetic repayment paths: baseline and sales declines of 20 and 40 percent.</desc>
+  <rect width="1200" height="360" rx="12" fill="#112c31"/>
+  <path d="M54 75 H70 V61 H86 V47 H102" stroke="#86d7bb" stroke-width="4" fill="none"/>
+  <text x="120" y="76" fill="#fcfaf5"
+    font-family="Verdana,sans-serif" font-size="36" font-weight="bold">
+    lendrisk</text>
+  <text x="54" y="155" fill="#fcfaf5"
+    font-family="Georgia,serif" font-size="46">
+    Understand credit.</text>
+  <text x="54" y="213" fill="#86d7bb"
+    font-family="Georgia,serif" font-size="46">
+    Follow the cash.</text>
+  <text x="56" y="266" fill="#c0d1d1"
+    font-family="Verdana,sans-serif" font-size="16">
+    Native binning · Explainable scores · Revenue financing</text>
+  <text x="56" y="319" fill="#c0d1d1"
+    font-family="monospace" font-size="13">
+    PYTHON 3.10+  /  APACHE 2.0  /  ALPHA</text>
+  <line x1="750" y1="48" x2="750" y2="312" stroke="#35565b"/>
+  <text x="805" y="74" fill="#c0d1d1"
+    font-family="monospace" font-size="13">
+    ONE DEAL. THREE REVENUE PATHS.</text>
+  <text x="805" y="105" fill="#c0d1d1"
+    font-family="Verdana,sans-serif" font-size="12">
+    Unpaid receivable · synthetic demo</text>
+  <path d="M805 120 V260 H1105" stroke="#47656a" fill="none"/>
+  <path d="M 805.0,120.0 L 810.0,122.8 L 815.0,125.2 L 820.0,127.7 L 825.0,130.3 L 830.0,132.3 L 835.0,134.6 L 840.0,137.0 L 845.0,139.6 L 850.0,141.6 L 855.0,143.5 L 860.0,145.6 L 865.0,148.1 L 870.0,150.5 L 875.0,152.5 L 880.0,154.8 L 885.0,157.1 L 890.0,159.2 L 895.0,161.4 L 900.0,163.6 L 905.0,165.6 L 910.0,167.9 L 915.0,170.4 L 920.0,172.8 L 925.0,175.2 L 930.0,177.5 L 935.0,179.8 L 940.0,182.1 L 945.0,184.6 L 950.0,187.0 L 955.0,189.5 L 960.0,192.1 L 965.0,194.7 L 970.0,197.6 L 975.0,200.2 L 980.0,202.6 L 985.0,205.0 L 990.0,207.6 L 995.0,210.4 L 1000.0,212.6 L 1005.0,215.7 L 1010.0,218.1 L 1015.0,221.0 L 1020.0,223.4 L 1025.0,226.2 L 1030.0,229.0 L 1035.0,232.3 L 1040.0,235.1 L 1045.0,237.6 L 1050.0,240.4 L 1055.0,243.5 L 1060.0,246.3 L 1065.0,249.1 L 1070.0,251.8 L 1075.0,254.4 L 1080.0,257.1 L 1085.0,259.7 L 1090.0,260.0 L 1095.0,260.0 L 1100.0,260.0 L 1105.0,260.0" fill="none" stroke="#86d7bb" stroke-width="3"/><path d="M 805.0,120.0 L 810.0,122.2 L 815.0,124.2 L 820.0,126.1 L 825.0,128.2 L 830.0,129.8 L 835.0,131.7 L 840.0,133.6 L 845.0,135.7 L 850.0,137.3 L 855.0,138.8 L 860.0,140.5 L 865.0,142.5 L 870.0,144.4 L 875.0,146.0 L 880.0,147.8 L 885.0,149.7 L 890.0,151.4 L 895.0,153.1 L 900.0,154.8 L 905.0,156.5 L 910.0,158.3 L 915.0,160.3 L 920.0,162.2 L 925.0,164.2 L 930.0,166.0 L 935.0,167.8 L 940.0,169.7 L 945.0,171.7 L 950.0,173.6 L 955.0,175.6 L 960.0,177.7 L 965.0,179.7 L 970.0,182.0 L 975.0,184.1 L 980.0,186.1 L 985.0,188.0 L 990.0,190.1 L 995.0,192.4 L 1000.0,194.1 L 1005.0,196.6 L 1010.0,198.5 L 1015.0,200.8 L 1020.0,202.7 L 1025.0,204.9 L 1030.0,207.2 L 1035.0,209.8 L 1040.0,212.1 L 1045.0,214.1 L 1050.0,216.3 L 1055.0,218.8 L 1060.0,221.0 L 1065.0,223.3 L 1070.0,225.4 L 1075.0,227.5 L 1080.0,229.7 L 1085.0,231.8 L 1090.0,233.9 L 1095.0,236.2 L 1100.0,238.3 L 1105.0,240.2" fill="none" stroke="#edbd62" stroke-width="3"/><path d="M 805.0,120.0 L 810.0,121.7 L 815.0,123.1 L 820.0,124.6 L 825.0,126.2 L 830.0,127.4 L 835.0,128.8 L 840.0,130.2 L 845.0,131.7 L 850.0,133.0 L 855.0,134.1 L 860.0,135.3 L 865.0,136.9 L 870.0,138.3 L 875.0,139.5 L 880.0,140.9 L 885.0,142.3 L 890.0,143.5 L 895.0,144.8 L 900.0,146.1 L 905.0,147.4 L 910.0,148.7 L 915.0,150.2 L 920.0,151.7 L 925.0,153.1 L 930.0,154.5 L 935.0,155.9 L 940.0,157.3 L 945.0,158.7 L 950.0,160.2 L 955.0,161.7 L 960.0,163.3 L 965.0,164.8 L 970.0,166.5 L 975.0,168.1 L 980.0,169.5 L 985.0,171.0 L 990.0,172.6 L 995.0,174.3 L 1000.0,175.6 L 1005.0,177.4 L 1010.0,178.9 L 1015.0,180.6 L 1020.0,182.0 L 1025.0,183.7 L 1030.0,185.4 L 1035.0,187.4 L 1040.0,189.1 L 1045.0,190.6 L 1050.0,192.3 L 1055.0,194.1 L 1060.0,195.8 L 1065.0,197.5 L 1070.0,199.1 L 1075.0,200.6 L 1080.0,202.3 L 1085.0,203.8 L 1090.0,205.4 L 1095.0,207.1 L 1100.0,208.7 L 1105.0,210.1" fill="none" stroke="#f48d70" stroke-width="3"/>
+  <text x="805" y="287" fill="#c0d1d1" font-family="monospace" font-size="11">FUNDING</text>
+  <text x="1053" y="287" fill="#c0d1d1" font-family="monospace" font-size="11">DAY 360</text>
+  <text x="805" y="319" fill="#86d7bb"
+    font-family="Verdana,sans-serif" font-size="13">
+    Baseline paid off on day 337</text>
+</svg>

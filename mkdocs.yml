@@ -1,12 +1,48 @@
 site_name: lendrisk
-site_description: Cash-flow features, lending simulations, and credit-risk diagnostics
+site_description: Explainable credit scores and cash-flow lending tools for Python
+site_url: https://datakim.github.io/lendrisk/
 repo_url: https://github.com/datakim/lendrisk
+repo_name: datakim/lendrisk
 theme:
   name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  font: false
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+markdown_extensions:
+  - attr_list
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+extra_css:
+  - stylesheets/extra.css
 nav:
-  - Overview: index.md
+  - Welcome: index.md
+  - Quickstart: quickstart.md
+  - Tutorials:
+      - Revenue financing: tutorials/revenue-financing.md
+      - Binning and scorecards: tutorials/scorecards.md
+  - Use your own data: your-data.md
+  - Glossary: glossary.md
   - API: api.md
   - Conventions: conventions.md
-  - Upstream provenance: upstream.md
-  - Research: research.md
-  - Project plan: project-plan.md
+  - Project:
+      - Upstream provenance: upstream.md
+      - Research: research.md
+      - Presentation references: presentation.md
+      - Roadmap: project-plan.md

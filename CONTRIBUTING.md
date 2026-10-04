@@ -13,6 +13,9 @@ python -m pip install -e ".[dev,docs,reference]"
 python -m pytest --cov=lendrisk --cov-report=term-missing
 ruff check .
 ruff format --check .
+python scripts/check_examples.py
+python scripts/check_notebooks.py
+python examples/visual_walkthrough.py --output-dir /tmp/lendrisk-figures
 mkdocs build --strict
 python -m build
 python -m twine check dist/*
@@ -22,6 +25,25 @@ Upstream comparison tests skip when OptBinning is absent. Native binning and
 scorecards must pass with core/dev dependencies alone. Add regression tests for financial
 behavior, edge cases, input contracts, or bugs; prefer reference calculations
 and invariants to tests that simply repeat implementation steps.
+
+## Documentation and visuals
+
+Write documentation, comments, and examples in English. Start a guide with the
+analyst question and include complete code, expected output, interpretation,
+and a next step. Explain unfamiliar terms when they first appear.
+
+Use synthetic or appropriately licensed data in figures, with the provenance
+and assumptions visible. Generate charts from actual calculations rather than
+inventing results. The README figures are reproduced by
+`examples/visual_walkthrough.py`; PNGs render in GitHub and SVGs support export.
+
+The two notebooks are derived from the tutorials. After changing a tutorial,
+run `python scripts/build_notebooks.py`, then
+`python scripts/check_notebooks.py --write`. Review the outputs before committing.
+The install cell is skipped in CI so tutorial execution checks the current
+checkout. Other cells must run from a fresh kernel without external data.
+
+GitHub Pages publishes the MkDocs documentation after changes land on `main`.
 
 ## Alpha release
 
