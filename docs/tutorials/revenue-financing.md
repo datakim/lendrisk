@@ -136,5 +136,9 @@ missed collections, defaults, recoveries, or payment priority, you need an
 additional model. If operating costs are absent, cash-balance metrics are
 unknown. Unobserved payoff and annual return remain `None`.
 
+Check `return_status` to distinguish an unrepaid horizon from an annual return
+that is outside the supported numerical range. `out_of_range` leaves the
+repayment and liquidity summary intact; it does not imply failed collection.
+
 [Bring your own data](../your-data.md) · [Calculation conventions](../conventions.md) ·
 [Open this tutorial as a notebook](https://colab.research.google.com/github/datakim/lendrisk/blob/main/notebooks/01_revenue_financing.ipynb)

@@ -1,7 +1,16 @@
 # Changelog
 
-## Unreleased
+## 0.1.0a2 — 2026-10-04
 
+- Correct scikit-learn transformer inheritance and tags for numerical, missing,
+  and binary-target inputs. Failed refits now invalidate prior learned state.
+- Compute conventional XIRR using log present values, avoiding incorrect returns
+  caused by intermediate overflow/underflow and the old fixed search limit.
+- Preserve representable XNPV values when an intermediate discount factor
+  overflows or underflows.
+- Preserve simulation summaries when an annualized return cannot be represented;
+  expose `return_status` and a specific `UnrepresentableReturnError` from XIRR.
+- Test the declared minimum dependency versions as well as current versions.
 - Visual README with an original SVG identity and reproducible financing,
   native-binning, and score-scale charts.
 - A first-run guide, two walkthroughs, input recipes, glossary, and executed notebooks.

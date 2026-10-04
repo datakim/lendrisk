@@ -51,7 +51,7 @@ def build(source: str, output: str) -> None:
             0,
         ),
         code_cell(
-            '%pip install -q "git+https://github.com/datakim/lendrisk.git@v0.1.0a1" matplotlib',
+            '%pip install -q "git+https://github.com/datakim/lendrisk.git@v0.1.0a2" matplotlib',
             0,
             install=True,
         ),

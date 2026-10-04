@@ -3,8 +3,10 @@ import pandas as pd
 import pytest
 from sklearn.base import clone
 from sklearn.datasets import make_classification
+from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
+from sklearn.utils.validation import check_is_fitted
 
 from lendrisk import BinningProcess, LogisticScorecard, OptimalBinning
 
@@ -54,3 +56,71 @@ def test_process_does_not_accept_reordered_columns():
     process = BinningProcess(binning=OptimalBinning(max_n_prebins=5)).fit(X, y)
     with pytest.raises(ValueError, match="order"):
         process.transform(X[["c", "b", "a"]])
+
+
+def test_process_failed_refit_rejects_previous_transformation():
+    X, y = training_data()
+    process = BinningProcess().fit(X, y)
+    with pytest.raises(ValueError):
+        process.fit(pd.DataFrame(), y)
+    with pytest.raises(NotFittedError):
+        check_is_fitted(process)
+    with pytest.raises(NotFittedError):
+        process.transform(X)
+    with pytest.raises(NotFittedError):
+        process.get_feature_names_out()
+    assert not hasattr(process, "feature_names_in_")
+    # A corrected refit can recover normally.
+    assert process.fit(X, y).transform(X).shape == X.shape
+
+
+def test_scorecard_failed_parameter_refit_rejects_stale_predictions():
+    X, y = training_data()
+    model = LogisticScorecard().fit(X, y).set_params(C=0)
+    with pytest.raises(ValueError):
+        model.fit(X, y)
+    with pytest.raises(NotFittedError):
+        check_is_fitted(model)
+    for method in (model.predict_proba, model.predict, model.score_points):
+        with pytest.raises(NotFittedError):
+            method(X)
+    with pytest.raises(NotFittedError):
+        model.table()
+    assert not hasattr(model, "classes_")
+    assert not hasattr(model, "binning_process_")
+    assert model.set_params(C=1).fit(X, y).predict_proba(X).shape == (len(X), 2)
+
+
+def test_estimator_tags_match_supported_inputs_and_targets():
+    from sklearn import utils
+
+    for estimator in (OptimalBinning(), BinningProcess(), LogisticScorecard()):
+        if hasattr(utils, "get_tags"):
+            tags = utils.get_tags(estimator)
+            assert tags.input_tags.allow_nan
+            assert tags.target_tags.required
+            if isinstance(estimator, LogisticScorecard):
+                assert not tags.classifier_tags.multi_class
+            else:
+                assert tags.transformer_tags is not None
+        else:
+            tags = estimator._get_tags()
+            assert tags["allow_nan"]
+            assert tags["requires_y"]
+            if isinstance(estimator, LogisticScorecard):
+                assert tags["binary_only"]
+
+
+def test_pandas_output_in_column_transformer_retains_names_and_index():
+    from sklearn.compose import ColumnTransformer
+
+    X, y = training_data()
+    X.index = pd.Index(range(1000, 1000 + len(X)), name="application_id")
+    X.loc[X.index[:5], "a"] = np.nan
+    transform = ColumnTransformer([("risk", BinningProcess(), list(X.columns))]).set_output(
+        transform="pandas"
+    )
+    output = transform.fit_transform(X, y)
+    assert output.index.equals(X.index)
+    assert output.columns.tolist() == ["risk__a", "risk__b", "risk__c"]
+    assert np.isfinite(output.to_numpy()).all()

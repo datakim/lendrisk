@@ -3,6 +3,7 @@ from itertools import combinations
 import numpy as np
 import pytest
 from sklearn.exceptions import NotFittedError
+from sklearn.utils.validation import check_is_fitted
 
 from lendrisk import BinningOptimizationError, OptimalBinning
 
@@ -109,7 +110,23 @@ def test_infeasible_fit_raises_without_retaining_old_fitted_state():
         model.fit(x, y)
     assert model.status_ == "INFEASIBLE"
     with pytest.raises(NotFittedError):
+        check_is_fitted(model)
+    with pytest.raises(NotFittedError):
         model.transform(x)
+
+
+def test_invalid_refit_clears_prior_solver_diagnostics_and_prediction():
+    x, y = data_from_counts([2, 8], [8, 2])
+    model = OptimalBinning().fit(x, y)
+    model.set_params(min_n_bins=6, max_n_bins=5)
+    with pytest.raises(ValueError):
+        model.fit(x, y)
+    with pytest.raises(NotFittedError):
+        check_is_fitted(model)
+    with pytest.raises(NotFittedError):
+        model.table()
+    assert not hasattr(model, "status_")
+    assert not hasattr(model, "solver_seconds_")
 
 
 def test_constant_feature_and_right_open_boundaries():

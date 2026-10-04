@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from ._validation import daily_frame, day, fraction, integer, number
-from .returns import xirr
+from .returns import UnrepresentableReturnError, xirr
 
 
 @dataclass(frozen=True)
@@ -51,11 +51,16 @@ class SimulationResult:
         paid_rows = self.schedule.loc[self.schedule["payment"] > 0]
         payoff_date = paid_rows["date"].iloc[-1] if repaid else None
         annual_return = None
+        return_status = "not_repaid"
         if repaid:
-            annual_return = xirr(
-                [-self.principal, *paid_rows["payment"].tolist()],
-                [self.funding_date, *paid_rows["date"].tolist()],
-            )
+            try:
+                annual_return = xirr(
+                    [-self.principal, *paid_rows["payment"].tolist()],
+                    [self.funding_date, *paid_rows["date"].tolist()],
+                )
+                return_status = "calculated"
+            except UnrepresentableReturnError:
+                return_status = "out_of_range"
         has_cash = self.opening_cash is not None
         return {
             "principal": self.principal,
@@ -68,6 +73,7 @@ class SimulationResult:
             "horizon_days": (self.schedule["date"].iloc[-1] - self.funding_date).days,
             "recovery_ratio": paid / self.target_repayment,
             "effective_annual_return": annual_return,
+            "return_status": return_status,
             "minimum_cash_balance": float(self.schedule["cash_balance"].min())
             if has_cash
             else None,

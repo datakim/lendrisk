@@ -169,3 +169,21 @@ def test_decreasing_milestones_rejected():
 def test_incomplete_daily_path_cannot_skip_payment_dates(daily_path):
     with pytest.raises(ValueError, match="missing calendar"):
         RevenueAdvance(100, 1.2, 0.1).simulate(daily_path().drop(index=3))
+
+
+def test_unrepresentable_return_preserves_repayment_and_liquidity_summary(daily_path):
+    result = RevenueAdvance(100, 100, 1).simulate(daily_path(days=1, revenue=10_000, cost=0))
+    summary = result.summary()
+    assert summary["repaid"]
+    assert summary["total_paid"] == 10_000
+    assert summary["remaining_balance"] == 0
+    assert summary["payoff_days"] == 1
+    assert summary["minimum_cash_balance"] == 100
+    assert summary["effective_annual_return"] is None
+    assert summary["return_status"] == "out_of_range"
+
+
+def test_return_status_distinguishes_calculated_and_incomplete_paths(daily_path):
+    product = RevenueAdvance(100, 1.2, 0.2)
+    assert product.simulate(daily_path(days=10)).summary()["return_status"] == "calculated"
+    assert product.simulate(daily_path(days=2)).summary()["return_status"] == "not_repaid"

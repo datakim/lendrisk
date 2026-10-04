@@ -8,7 +8,7 @@ This example needs no dataset or account. It runs locally on synthetic data.
 Use Python 3.10 or newer, with Git available:
 
 ```bash
-python -m pip install "git+https://github.com/datakim/lendrisk.git@v0.1.0a1"
+python -m pip install "git+https://github.com/datakim/lendrisk.git@v0.1.0a2"
 ```
 
 If you use Jupyter, run the same command with `%pip` in a notebook cell so the

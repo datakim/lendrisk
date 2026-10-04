@@ -1,6 +1,6 @@
 # Project plan: lendrisk
 
-Planning date: 2026-10-04. Implementation version: 0.1.0a1.
+Planning date: 2026-10-04. Implementation version: 0.1.0a2.
 
 ## Purpose and users
 

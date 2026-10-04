@@ -23,7 +23,7 @@ def _feature(x):
     return values
 
 
-class OptimalBinning(BaseEstimator, TransformerMixin):
+class OptimalBinning(TransformerMixin, BaseEstimator):
     """Maximize IV over contiguous numerical prebins using the native CP-SAT model.
 
     Constraints apply to regular observations; Missing/Special are separate
@@ -66,7 +66,16 @@ class OptimalBinning(BaseEstimator, TransformerMixin):
 
     def fit(self, x, y):
         """Learn boundaries from training observations only; event=1 means default."""
-        for attribute in ("splits_", "binning_table_", "iv_", "objective_gap_", "trend_"):
+        for attribute in (
+            "splits_",
+            "prebin_splits_",
+            "binning_table_",
+            "iv_",
+            "objective_gap_",
+            "trend_",
+            "status_",
+            "solver_seconds_",
+        ):
             self.__dict__.pop(attribute, None)
         max_prebins = integer(self.max_n_prebins, "max_n_prebins", minimum=2)
         if max_prebins > 50:
@@ -176,6 +185,21 @@ class OptimalBinning(BaseEstimator, TransformerMixin):
         )
         return self
 
+    def __sklearn_is_fitted__(self):
+        return hasattr(self, "binning_table_")
+
+    def _more_tags(self):
+        # scikit-learn 1.4/1.5 use the legacy tag interface.
+        return {"requires_y": True, "allow_nan": True, "X_types": ["1darray"]}
+
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.target_tags.required = True
+        tags.input_tags.allow_nan = True
+        tags.input_tags.one_d_array = True
+        tags.input_tags.two_d_array = False
+        return tags
+
     def transform(self, x, *, metric="woe"):
         """Apply learned intervals; NaN/special codes retain dedicated bucket IDs."""
         check_is_fitted(self, "binning_table_")
@@ -194,13 +218,15 @@ class OptimalBinning(BaseEstimator, TransformerMixin):
         return self.binning_table_.copy(deep=True)
 
 
-class BinningProcess(BaseEstimator, TransformerMixin):
+class BinningProcess(TransformerMixin, BaseEstimator):
     """Learn a native OptimalBinning per named numerical DataFrame column."""
 
     def __init__(self, *, binning=None):
         self.binning = binning
 
     def fit(self, X, y):
+        for attribute in ("binning_models_", "feature_names_in_", "n_features_in_"):
+            self.__dict__.pop(attribute, None)
         if not isinstance(X, pd.DataFrame) or X.empty or not X.columns.is_unique:
             raise ValueError("X must be a nonempty DataFrame with unique columns")
         if not all(isinstance(c, str) for c in X.columns):
@@ -208,12 +234,23 @@ class BinningProcess(BaseEstimator, TransformerMixin):
         prototype = self.binning if self.binning is not None else OptimalBinning()
         if not isinstance(prototype, OptimalBinning):
             raise ValueError("binning must be an OptimalBinning estimator")
-        self.__dict__.pop("binning_models_", None)
         models = {name: clone(prototype).fit(X[name], y) for name in X.columns}
         self.feature_names_in_ = X.columns.to_numpy(copy=True)
         self.n_features_in_ = len(X.columns)
         self.binning_models_ = models
         return self
+
+    def __sklearn_is_fitted__(self):
+        return hasattr(self, "binning_models_")
+
+    def _more_tags(self):
+        return {"requires_y": True, "allow_nan": True}
+
+    def __sklearn_tags__(self):
+        tags = super().__sklearn_tags__()
+        tags.target_tags.required = True
+        tags.input_tags.allow_nan = True
+        return tags
 
     def transform(self, X):
         check_is_fitted(self, "binning_models_")

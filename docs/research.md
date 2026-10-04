@@ -21,3 +21,12 @@ The initial differentiation is the explicit link between daily revenue,
 operating costs, financing terms, and horizon-aware recovery/liquidity results.
 This is a product direction chosen from the reviewed examples, not an exhaustive
 market-gap finding.
+
+The 0.1.0a2 numerical review follows the
+[scikit-learn estimator inheritance and tag conventions](https://scikit-learn.org/stable/developers/develop.html).
+The XIRR implementation retains the
+[365-day dated-return convention](https://support.microsoft.com/en-us/excel/functions/xirr-function)
+and uses [NumPy logaddexp](https://numpy.org/doc/stable/reference/generated/numpy.logaddexp.html)
+to compare present values without exponentiating extreme discount factors.
+Closed-form Decimal references and representability checks validate the change;
+the algorithm does not copy Microsoft's iterative implementation.

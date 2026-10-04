@@ -47,6 +47,9 @@ use of proceeds in costs if relevant. Payments are not capped by available
 cash; a negative balance identifies required liquidity under these assumptions.
 All supplied dates are retained after payoff to show continuing business cash.
 
+Minimum cash and negative-cash-day counts use daily closing balances. They do
+not include the opening post-funding balance as an extra day.
+
 At the horizon, unrecovered balances remain outstanding. No terminal recovery
 or estimated loss is fabricated. Floating-point residuals within 1e-12 of the
 initial receivable are cleared; monetary values are not rounded to cents.
@@ -60,11 +63,22 @@ remaining principal. Fees, holidays, late charges, prepayments, and actual-day
 interest accrual are not included.
 
 XNPV discounts at an effective annual rate with ACT/365 fixed year fractions.
+Extreme discount factors are combined with cash amounts in logarithmic form
+before exponentiation, retaining finite discounted values. A non-finite final
+present value raises `ValueError`.
 XIRR supports a net initial outflow followed by later nonnegative inflows, so
 the conventional cash-flow root is unique. Same-day flows are netted and sorted.
 Multiple-sign-change cash flows raise rather than selecting an arbitrary root.
 Simulation reports return only on full recovery; partial-recovery return is
 None. This does not compute a legal or regulatory APR.
+
+XIRR compares the logarithms of discounted inflows and the initial outflow,
+so large/small intermediate discount factors do not distort a finite result.
+If the annual rate cannot be represented as a finite float greater than -1,
+`xirr` raises `UnrepresentableReturnError`. Simulation preserves its schedule
+and summary, reports return None, and sets `return_status="out_of_range"`.
+Otherwise the status is `calculated` for a fully repaid path or `not_repaid`
+for an incomplete path.
 
 ## Credit metrics and stability
 

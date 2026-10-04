@@ -11,11 +11,11 @@ from .products import (
     SimulationResult,
     TermLoan,
 )
-from .returns import xirr, xnpv
+from .returns import UnrepresentableReturnError, xirr, xnpv
 from .scorecard import LogisticScorecard
 from .stress import RevenueShock, compare_scenarios
 
-__version__ = "0.1.0a1"
+__version__ = "0.1.0a2"
 __all__ = [
     "BinningOptimizationError",
     "BinningProcess",
@@ -27,6 +27,7 @@ __all__ = [
     "RevenueShock",
     "SimulationResult",
     "TermLoan",
+    "UnrepresentableReturnError",
     "cashflow_features",
     "compare_scenarios",
     "credit_metrics",

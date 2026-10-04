@@ -38,6 +38,12 @@ negative_cash_days, total_minimum_topup, milestones_observed, and
 milestones_breached. Missing/unobserved payoff and return are None; cash
 metrics are None without cost data.
 
+`return_status` is `calculated`, `not_repaid`, or `out_of_range`. A fully repaid
+path whose annualized return is outside finite floating-point range retains its
+repayment/liquidity summary, with return None and status `out_of_range`.
+`minimum_cash_balance` is the minimum of the daily closing balances; it excludes
+the opening balance at funding.
+
 `TermLoan(principal, annual_rate, term_months)` exposes `monthly_payment` and
 `schedule(start_date=...)`. The schedule contains date, period, payment,
 interest, principal_paid, remaining_balance.
@@ -69,6 +75,9 @@ expected_share, actual_share, psi_contribution.
 
 `xnpv(rate, amounts, dates)` requires effective annual rate > -1.
 `xirr(amounts, dates)` requires conventional dated cash flows. Both use ACT/365.
+XIRR compares log present values to avoid overflow/underflow in intermediate
+discount factors. `UnrepresentableReturnError`, a `ValueError` subclass, reports
+a return outside the finite numerical range above -1.
 
 ## Synthetic data
 
@@ -112,3 +121,8 @@ the per-variable point contributions returned by table().
 
 Higher points imply lower default risk. Score = base_score + pdo/ln(2) ×
 [ln(good:bad odds) - ln(base_odds)]. Predictions require the same feature schema.
+
+Every call to `fit` invalidates previous learned state. If fitting fails,
+transformations, predictions, and generic scikit-learn fitted checks raise
+`NotFittedError` until a successful refit. Solver diagnostics from a failed
+optimization may remain available without marking the estimator as fitted.

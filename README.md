@@ -30,7 +30,7 @@ shock changes revenue while retaining the original operating-cost path.
 Python **3.10+** and Git are required. Install the tagged alpha:
 
 ```bash
-python -m pip install "git+https://github.com/datakim/lendrisk.git@v0.1.0a1"
+python -m pip install "git+https://github.com/datakim/lendrisk.git@v0.1.0a2"
 ```
 
 Run this complete example in a Python file or notebook:

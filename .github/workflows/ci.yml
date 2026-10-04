@@ -43,6 +43,17 @@ jobs:
       - run: /tmp/lendrisk-wheel-test/bin/python examples/cashflow_lending.py
       - run: /tmp/lendrisk-wheel-test/bin/python examples/credit_diagnostics.py
       - run: /tmp/lendrisk-wheel-test/bin/python examples/native_scorecard.py
+  minimum-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -e ".[dev]" "numpy==1.24.4" "pandas==2.0.3" "scikit-learn==1.4.0" "ortools==9.10.4067"
+      - run: python -m pytest
+      - run: python examples/quickstart.py
+      - run: python examples/native_scorecard.py
   upstream-reference:
     runs-on: ubuntu-latest
     steps:
